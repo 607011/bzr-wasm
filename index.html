@@ -25,14 +25,22 @@
       margin: 0;
       padding: 0;
     }
-    html, body {
+
+    .app {
+      display: flex;
+    }
+
+    html,
+    body {
       background-color: #111;
       color: #eee;
       font-family: 'Courier New', Courier, monospace;
     }
+
     div {
       padding: 5px;
     }
+
     canvas {
       background-color: #000;
     }
@@ -59,7 +67,7 @@
     }
 
     const update = t => {
-      fpsEl.innerText = `${(1000/(t-t0)).toFixed(1)} fps`;
+      fpsEl.innerText = `${(1000 / (t - t0)).toFixed(1)} fps`;
       t0 = t;
       ++iterations;
       iterationsEl.innerText = iterations;
@@ -80,7 +88,7 @@
     };
 
     const pour = () => {
-      const seed = (Math.random() * 2**30) | 0;
+      const seed = (Math.random() * 2 ** 30) | 0;
       console.log(`seed = ${seed}`);
       exports._BZR_pour(seed);
     };
@@ -117,13 +125,33 @@
 </head>
 
 <body>
-  <div>
-    <canvas id="canvas"></canvas>
-  </div>
-  <div>
-    <span id="iterations">0</span>
-    –
-    <span id="fps"></span>
+  <div class="app">
+    <div>
+      <canvas id="canvas"></canvas>
+    </div>
+    <div>
+      <div>
+        <label for="k1">k1</label>
+        <input type="range" name="k1" min="1" max="10">
+      </div>
+      <div>
+        <label for="k1">k2</label>
+        <input type="range" name="k2" min="1" max="10">
+      </div>
+      <div>
+        <label for="k1">g</label>
+        <input type="range" name="g" min="1" max="100">
+      </div>
+      <div>
+        <label for="k1">n</label>
+        <input type="range" name="n" min="1" max="255">
+      </div>
+    </div>
+    <div>
+      <span id="iterations">0</span>
+      –
+      <span id="fps"></span>
+    </div>
   </div>
 </body>
 
