@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Belousov-Zhabotinsky reaction (WASM)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      background-color: #111;
+      color: #eee;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    div {
+      padding: 5px;
+    }
+    canvas {
+      background-color: #000;
+    }
+  </style>
+  <script>
+    const memory = new WebAssembly.Memory({ initial: 256, maximum: 256 });
+    let exports = null;
+    let canvas = null;
+
+    const WIDTH = 512;
+    const HEIGHT = 512;
+    const DISH_SIZE = WIDTH * HEIGHT;
+    const DOTSIZE = 1;
+    let ctx = null;
+    let iterations = 0;
+    let iterationsEl = null;
+
+    async function createWebAssembly(path, importObject) {
+      const result = await window.fetch(path);
+      const bytes = await result.arrayBuffer();
+      return WebAssembly.instantiate(bytes, importObject);
+    }
+
+    const update = t => {
+      ++iterations;
+      iterationsEl.innerText = iterations;
+      exports._BZR_iterate(3, 3, 31, 127);
+      const rgbBuffer = new Uint8ClampedArray(memory.buffer, exports._BZR_rgb_ref(), 4 * DISH_SIZE);
+      const img = new ImageData(rgbBuffer, canvas.width, canvas.height);
+      ctx.putImageData(img, 0, 0);
+      requestAnimationFrame(update);
+    };
+
+    const initCanvas = () => {
+      canvas = document.getElementById('canvas');
+      canvas.width = WIDTH;
+      canvas.height = HEIGHT;
+      canvas.style.width = `${WIDTH * DOTSIZE}px`;
+      canvas.style.height = `${HEIGHT * DOTSIZE}px`;
+      ctx = canvas.getContext('2d');
+    };
+
+    const pour = () => {
+      const seed = (Math.random() * 2**30) | 0;
+      console.log(`seed = ${seed}`);
+      exports._BZR_pour(seed);
+    };
+
+    async function init() {
+      const env = {
+        'abortStackOverflow': () => { throw new Error('overflow'); },
+        'table': new WebAssembly.Table({ initial: 0, maximum: 0, element: 'anyfunc' }),
+        '__table_base': 0,
+        'memory': memory,
+        '__memory_base': 1024,
+        'STACKTOP': 0,
+        'STACK_MAX': memory.buffer.byteLength,
+      };
+      const importObject = { env };
+      const wa = await createWebAssembly('bzr.wasm', importObject);
+      exports = wa.instance.exports;
+      exports._BZR_init();
+
+      iterationsEl = document.getElementById('iterations');
+      initCanvas();
+      restart();
+    }
+
+    const restart = () => {
+      iterations = 0;
+      pour();
+      requestAnimationFrame(update);
+    };
+
+    window.addEventListener('load', init);
+  </script>
+</head>
+
+<body>
+  <div>
+    <canvas id="canvas"></canvas>
+  </div>
+  <div>
+    <span id="iterations">0</span>
+  </div>
+</body>
+
+</html>
