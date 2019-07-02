@@ -142,7 +142,7 @@ void BZR_iterate(int k1, int k2, int g, int n)
     for (int x = 0; x < WIDTH; ++x)
     {
       const int c = cell[x + y * WIDTH];
-      int S = 0;
+      int S = c;
       int excited = 0;
       int active = 0;
       for (int yy = y - 1; yy <= y + 1; ++yy)

@@ -4,6 +4,22 @@
 <head>
   <meta charset="utf-8">
   <title>Belousov-Zhabotinsky reaction (WASM)</title>
+  <!--
+   Copyright (c) 2019 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or (at
+   your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program. If not, see http://www.gnu.org/licenses/.
+  -->
   <style>
     * {
       margin: 0;
@@ -25,6 +41,7 @@
     const memory = new WebAssembly.Memory({ initial: 256, maximum: 256 });
     let exports = null;
     let canvas = null;
+    let t0 = 0;
 
     const WIDTH = 512;
     const HEIGHT = 512;
@@ -33,6 +50,7 @@
     let ctx = null;
     let iterations = 0;
     let iterationsEl = null;
+    let fpsEl = null;
 
     async function createWebAssembly(path, importObject) {
       const result = await window.fetch(path);
@@ -41,9 +59,11 @@
     }
 
     const update = t => {
+      fpsEl.innerText = `${(1000/(t-t0)).toFixed(1)} fps`;
+      t0 = t;
       ++iterations;
       iterationsEl.innerText = iterations;
-      exports._BZR_iterate(3, 3, 31, 127);
+      exports._BZR_iterate(3, 1, 14, 125);
       const rgbBuffer = new Uint8ClampedArray(memory.buffer, exports._BZR_rgb_ref(), 4 * DISH_SIZE);
       const img = new ImageData(rgbBuffer, canvas.width, canvas.height);
       ctx.putImageData(img, 0, 0);
@@ -81,6 +101,7 @@
       exports._BZR_init();
 
       iterationsEl = document.getElementById('iterations');
+      fpsEl = document.getElementById('fps');
       initCanvas();
       restart();
     }
@@ -101,6 +122,8 @@
   </div>
   <div>
     <span id="iterations">0</span>
+    –
+    <span id="fps"></span>
   </div>
 </body>
 
