@@ -114,14 +114,6 @@ void BZR_iterate(float alpha, float beta, float gamma)
       c[x][y][q] = constrain(sc + sc * (gamma * sa - beta * sb));
     }
   }
-  if (p == 0)
-  {
-    p = 1;
-    q = 0;
-  }
-  else
-  {
-    p = 0;
-    q = 1;
-  }
+  p ^= 1;
+  q ^= 1;
 }
