@@ -32,7 +32,6 @@
   const WIDTH = 512;
   const HEIGHT = 512;
   const DISH_SIZE = WIDTH * HEIGHT;
-  const DOTSIZE = 1;
   let ctx = null;
   let iterations = 0;
   let iterationsEl = null;
@@ -50,6 +49,7 @@
     ++iterations;
     iterationsEl.innerText = iterations;
     exports._BZR_iterate(k1, k2, g, n);
+    exports._BZR_convertToRGB(n);
     const rgbBuffer = new Uint8ClampedArray(memory.buffer, exports._BZR_rgb_ref(), 4 * DISH_SIZE);
     const img = new ImageData(rgbBuffer, canvas.width, canvas.height);
     ctx.putImageData(img, 0, 0);
