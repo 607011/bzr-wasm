@@ -81,7 +81,6 @@
     const importObject = { env };
     const wa = await createWebAssembly('bzr.wasm', importObject);
     exports = wa.instance.exports;
-    exports._BZR_init();
 
     iterationsEl = document.getElementById('iterations');
     fpsEl = document.getElementById('fps');

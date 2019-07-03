@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
 
+#include "rng.hpp"
+
 typedef unsigned char byte;
 typedef unsigned int uint;
 
@@ -52,32 +54,16 @@ void BZR_convertToRGB()
   }
 }
 
-uint R = 0;
-const uint A = 13U;
-const uint B = 2531011U;
-
-void seedF(uint seed)
-{
-  R = seed;
-}
-
-float randF()
-{
-  static const uint UINT_RAND_MAX = 0xffffffffU;
-  R = (A * R + B) & UINT_RAND_MAX;
-  return float(R) / float(UINT_RAND_MAX);
-}
-
 void BZR_pour(uint seed)
 {
-  seedF(seed);
+  RNG rng(seed);
   for (int x = 0; x < WIDTH; ++x)
   {
     for (int y = 0; y < HEIGHT; ++y)
     {
-      a[x][y][0] = randF();
-      b[x][y][0] = randF();
-      c[x][y][0] = randF();
+      a[x][y][0] = rng.getFloat();
+      b[x][y][0] = rng.getFloat();
+      c[x][y][0] = rng.getFloat();
     }
   }
   p = 0;
@@ -89,17 +75,9 @@ byte *BZR_rgb_ref()
   return (byte *)rgb;
 }
 
-void BZR_init()
-{
-}
-
 float constrain(float x)
 {
-  return (x < 0)
-             ? 0
-             : (x > 1)
-                   ? 1
-                   : x;
+  return (x < 0) ? 0 : (x > 1) ? 1 : x;
 }
 
 // One iteration of the Belousov-Zhabotinsky reaction:
