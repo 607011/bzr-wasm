@@ -20,7 +20,7 @@ class RNG
 {
 private:
   static const unsigned int UINT_RAND_MAX = 0xffffffffU;
-  static const unsigned int a = 13U;
+  static const unsigned int a = 214013U;
   static const unsigned int b = 2531011U;
   static const unsigned int m = 0xffffffffU;
   unsigned int r;
