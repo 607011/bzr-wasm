@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Belousov-Zhabotinsky reaction (WASM)</title>
+  <title>Belousov-Zhabotinsky reaction simulation</title>
   <!--
    Copyright (c) 2019 Oliver Lau <ola@ct.de>, Heise Medien GmbH & Co. KG
 
@@ -20,108 +20,11 @@
    You should have received a copy of the GNU General Public License
    along with this program. If not, see http://www.gnu.org/licenses/.
   -->
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-    }
-
-    .app {
-      display: flex;
-    }
-
-    html,
-    body {
-      background-color: #111;
-      color: #eee;
-      font-family: 'Courier New', Courier, monospace;
-    }
-
-    div {
-      padding: 5px;
-    }
-
-    canvas {
-      background-color: #000;
-    }
-  </style>
-  <script>
-    const memory = new WebAssembly.Memory({ initial: 256, maximum: 256 });
-    let exports = null;
-    let canvas = null;
-    let t0 = 0;
-
-    const WIDTH = 512;
-    const HEIGHT = 512;
-    const DISH_SIZE = WIDTH * HEIGHT;
-    const DOTSIZE = 1;
-    let ctx = null;
-    let iterations = 0;
-    let iterationsEl = null;
-    let fpsEl = null;
-
-    async function createWebAssembly(path, importObject) {
-      const result = await window.fetch(path);
-      const bytes = await result.arrayBuffer();
-      return WebAssembly.instantiate(bytes, importObject);
-    }
-
-    const update = t => {
-      fpsEl.innerText = `${(1000 / (t - t0)).toFixed(1)} fps`;
-      t0 = t;
-      ++iterations;
-      iterationsEl.innerText = iterations;
-      exports._BZR_iterate(3, 1, 14, 125);
-      const rgbBuffer = new Uint8ClampedArray(memory.buffer, exports._BZR_rgb_ref(), 4 * DISH_SIZE);
-      const img = new ImageData(rgbBuffer, canvas.width, canvas.height);
-      ctx.putImageData(img, 0, 0);
-      requestAnimationFrame(update);
-    };
-
-    const initCanvas = () => {
-      canvas = document.getElementById('canvas');
-      canvas.width = WIDTH;
-      canvas.height = HEIGHT;
-      canvas.style.width = `${WIDTH * DOTSIZE}px`;
-      canvas.style.height = `${HEIGHT * DOTSIZE}px`;
-      ctx = canvas.getContext('2d');
-    };
-
-    const pour = () => {
-      const seed = (Math.random() * 2 ** 30) | 0;
-      console.log(`seed = ${seed}`);
-      exports._BZR_pour(seed);
-    };
-
-    async function init() {
-      const env = {
-        'abortStackOverflow': () => { throw new Error('overflow'); },
-        'table': new WebAssembly.Table({ initial: 0, maximum: 0, element: 'anyfunc' }),
-        '__table_base': 0,
-        'memory': memory,
-        '__memory_base': 1024,
-        'STACKTOP': 0,
-        'STACK_MAX': memory.buffer.byteLength,
-      };
-      const importObject = { env };
-      const wa = await createWebAssembly('bzr.wasm', importObject);
-      exports = wa.instance.exports;
-      exports._BZR_init();
-
-      iterationsEl = document.getElementById('iterations');
-      fpsEl = document.getElementById('fps');
-      initCanvas();
-      restart();
-    }
-
-    const restart = () => {
-      iterations = 0;
-      pour();
-      requestAnimationFrame(update);
-    };
-
-    window.addEventListener('load', init);
-  </script>
+  <meta name="author" content="Oliver Lau">
+  <meta name="copyright" content="Oliver Lau, Heise Medien GmbH & Co. KG">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" media="screen" type="text/css" href="app.css"></link>
+  <script defer type="text/javascript" src="app.js"></script>
 </head>
 
 <body>
@@ -132,25 +35,28 @@
     <div>
       <div>
         <label for="k1">k1</label>
-        <input type="range" name="k1" min="1" max="10">
+        <input type="range" id="k1" name="k1" min="1" max="10">
+        <span id="k1-value"></span>
       </div>
       <div>
         <label for="k1">k2</label>
-        <input type="range" name="k2" min="1" max="10">
+        <input type="range" id="k2" name="k2" min="1" max="10">
+        <span id="k2-value"></span>
       </div>
       <div>
         <label for="k1">g</label>
-        <input type="range" name="g" min="1" max="100">
+        <input type="range" id="g" name="g" min="1" max="100">
+        <span id="g-value"></span>
       </div>
       <div>
         <label for="k1">n</label>
-        <input type="range" name="n" min="1" max="255">
+        <input type="range" id="n" name="n" min="10" max="250">
+        <span id="n-value"></span>
       </div>
     </div>
     <div>
-      <span id="iterations">0</span>
-      –
-      <span id="fps"></span>
+      <div id="iterations"></div>
+      <div id="fps"></div>
     </div>
   </div>
 </body>
