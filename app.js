@@ -23,10 +23,10 @@
   const memory = new WebAssembly.Memory({ initial: 256, maximum: 256 });
   let exports = null;
   let canvas = null;
-  let k1 = DEFAULT_K1;
-  let k2 = DEFAULT_K2;
-  let g = DEFAULT_G;
-  let n = DEFAULT_N;
+  let k1 = localStorage.getItem('k1') || DEFAULT_K1;
+  let k2 = localStorage.getItem('k2') || DEFAULT_K2;
+  let g = localStorage.getItem('g') || DEFAULT_G;
+  let n = localStorage.getItem('n') || DEFAULT_N;
   let t0 = 0;
 
   const WIDTH = 512;
@@ -89,28 +89,35 @@
     fpsEl = document.getElementById('fps');
     document.getElementById('k1').addEventListener('change', event => {
       k1 = parseInt(event.target.value);
+      localStorage.setItem('k1', k1);
       document.getElementById('k1-value').innerText = k1;
     });
     document.getElementById('k2').addEventListener('change', event => {
       k2 = parseInt(event.target.value);
+      localStorage.setItem('k2', k2);
       document.getElementById('k2-value').innerText = k2;
     });
     document.getElementById('g').addEventListener('change', event => {
       g = parseInt(event.target.value);
+      localStorage.setItem('g', g);
       document.getElementById('g-value').innerText = g;
     });
     document.getElementById('n').addEventListener('change', event => {
       n = parseInt(event.target.value);
+      localStorage.setItem('n', n);
       document.getElementById('n-value').innerText = n;
     });
-    document.getElementById('k1').value = DEFAULT_K1;
-    document.getElementById('k2').value = DEFAULT_K2;
-    document.getElementById('g').value = DEFAULT_G;
-    document.getElementById('n').value = DEFAULT_N;
-    document.getElementById('k1-value').innerText = DEFAULT_K1;
-    document.getElementById('k2-value').innerText = DEFAULT_K2;
-    document.getElementById('g-value').innerText = DEFAULT_G;
-    document.getElementById('n-value').innerText = DEFAULT_N;
+    document.getElementById('k1').value = k1;
+    document.getElementById('k2').value = k2;
+    document.getElementById('g').value = g;
+    document.getElementById('n').value = n;
+    document.getElementById('k1-value').innerText = k1;
+    document.getElementById('k2-value').innerText = k2;
+    document.getElementById('g-value').innerText = g;
+    document.getElementById('n-value').innerText = n;
+    document.getElementById('reset-dish-button').addEventListener('click', () => {
+      pour();
+    });
     initCanvas();
     restart();
   }

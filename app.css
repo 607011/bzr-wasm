@@ -29,3 +29,10 @@ canvas {
   background-color: #000;
   image-rendering: pixelated;
 }
+
+button {
+  padding: 4px;
+  border: 1px solid #ddd;
+  background-color: #333;
+  color: #eee;
+}
