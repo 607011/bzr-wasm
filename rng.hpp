@@ -22,21 +22,22 @@ private:
   static const unsigned int UINT_RAND_MAX = 0xffffffffU;
   static const unsigned int a = 214013U;
   static const unsigned int b = 2531011U;
-  static const unsigned int m = 0xffffffffU;
   unsigned int r;
-  void proceed()
-  {
-    r = (a * r + b) % m;
-  }
 
 public:
   explicit RNG(unsigned int seed)
-      : r(seed){};
+      : r(seed){}
+
+  unsigned int gen()
+  {
+    r = a * r + b;
+    return r;
+  }
+
   float getFloat()
   {
-    proceed();
-    return float(r) / UINT_RAND_MAX;
+    return float(gen()) / UINT_RAND_MAX;
   }
 };
 
-#endif
+#endif // __RNG_HPP__
