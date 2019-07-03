@@ -19,21 +19,21 @@ typedef unsigned int uint;
 const int WIDTH = 512;
 const int HEIGHT = 512;
 const int DISHSIZE = WIDTH * HEIGHT;
-const int PALETTESIZE = 256;
 
-static byte cellA[DISHSIZE];
-static byte cellB[DISHSIZE];
-static byte *cell = (byte *)cellA;
+static float a[WIDTH][HEIGHT][2];
+static float b[WIDTH][HEIGHT][2];
+static float c[WIDTH][HEIGHT][2];
+static int p = 0;
+static int q = 1;
 static uint rgb[DISHSIZE];
-static uint fullspectrum_rgb[PALETTESIZE];
-static uint rgb_rgb[PALETTESIZE];
 
-extern "C" {
+extern "C"
+{
   void BZR_init();
   void BZR_pour(uint seed);
   byte *BZR_rgb_ref();
-  void BZR_iterate(int k1, int k2, int g, int n);
-  void BZR_convertToRGB(uint n);
+  void BZR_iterate(float alpha, float beta, float gamma);
+  void BZR_convertToRGB();
 }
 
 uint rgb2int(float r, float g, float b)
@@ -41,66 +41,47 @@ uint rgb2int(float r, float g, float b)
   return 0xff000000U | (uint(r * 256) << 16) | (uint(g * 256) << 8) | uint(b * 256) << 0;
 }
 
-uint hsv2rgb(float h, float s, float v)
+void BZR_convertToRGB()
 {
-  while (h >= 360.f) {
-    h -= 360.f;
-  }
-  h /= 60;
-  const int i = int(h);
-  const float f = h - i;
-  const float p = v * (1.f - s);
-  if ((i & 1) == 1)
+  for (int x = 0; x < WIDTH; ++x)
   {
-    const float q = v * (1.f - (s * f));
-    switch (i)
+    for (int y = 0; y < HEIGHT; ++y)
     {
-    case 1:
-      return rgb2int(q, v, p);
-    case 3:
-      return rgb2int(p, q, v);
-    case 5:
-      return rgb2int(v, p, q);
+      rgb[x + y * WIDTH] = rgb2int(a[x][y][p], b[x][y][p], c[x][y][p]);
     }
-  }
-  else
-  {
-    const float t = v * (1.f - (s * (1.f - f)));
-    switch (i)
-    {
-    case 0:
-      return rgb2int(v, t, p);
-    case 2:
-      return rgb2int(p, v, t);
-    case 4:
-      return rgb2int(t, p, v);
-    }
-  }
-  return 0x00000000;
-}
-
-void BZR_convertToRGB(uint n)
-{
-  byte *const current = (cell == cellA)
-                       ? (byte *)&cellB
-                       : (byte *)&cellA;
-  for (int i = 0; i < WIDTH * HEIGHT; ++i)
-  {
-    rgb[i] = rgb_rgb[PALETTESIZE * uint(current[i]) / n];
   }
 }
 
-void BZR_pour(unsigned int seed)
+uint R = 0;
+const uint A = 13U;
+const uint B = 2531011U;
+
+void seedF(uint seed)
 {
-  uint r = seed;
-  const uint a = 13U;
-  const uint b = 2531011U;
-  cell = cellA;
-  for (int i = 0; i < WIDTH * HEIGHT; ++i)
+  R = seed;
+}
+
+float randF()
+{
+  static const uint UINT_RAND_MAX = 0xffffffffU;
+  R = (A * R + B) & UINT_RAND_MAX;
+  return float(R) / float(UINT_RAND_MAX);
+}
+
+void BZR_pour(uint seed)
+{
+  seedF(seed);
+  for (int x = 0; x < WIDTH; ++x)
   {
-    cell[i] = r % 0xff;
-    r = (a * r + b) & 0xffffffffU;
+    for (int y = 0; y < HEIGHT; ++y)
+    {
+      a[x][y][0] = randF();
+      b[x][y][0] = randF();
+      c[x][y][0] = randF();
+    }
   }
+  p = 0;
+  q = 1;
 }
 
 byte *BZR_rgb_ref()
@@ -110,32 +91,15 @@ byte *BZR_rgb_ref()
 
 void BZR_init()
 {
-  // setup color tables
-  for (int i = 0; i < PALETTESIZE; ++i)
-  {
-    {
-      const float hue = 360.f * float(i) / 256.f;
-      fullspectrum_rgb[i] = hsv2rgb(hue, 1.f, 1.f);
-    }
-    {
-      if (i < 64)
-      {
-        rgb_rgb[i] = rgb2int(0xff, 0, 0);
-      }
-      else if (i < 128)
-      {
-        rgb_rgb[i] = rgb2int(0xff, 0xff, 0);
-      }
-      else if (i < 192)
-      {
-        rgb_rgb[i] = rgb2int(0, 0xff, 0xff);
-      }
-      else
-      {
-        rgb_rgb[i] = rgb2int(0, 0, 0xff);
-      }
-    }
-  }
+}
+
+float constrain(float x)
+{
+  return (x < 0)
+             ? 0
+             : (x > 1)
+                   ? 1
+                   : x;
 }
 
 // One iteration of the Belousov-Zhabotinsky reaction:
@@ -143,54 +107,43 @@ void BZR_init()
 // k2: influence of activated cells in neighborhood
 // g: speed at which waves travel
 // n: max cell value
-void BZR_iterate(int k1, int k2, int g, int n)
+void BZR_iterate(float alpha, float beta, float gamma)
 {
-  byte *const next = (cell == cellA)
-                         ? (byte *)&cellB
-                         : (byte *)&cellA;
-  for (int y = 0; y < HEIGHT; ++y)
+  for (int x = 0; x < WIDTH; x++)
   {
-    for (int x = 0; x < WIDTH; ++x)
+    for (int y = 0; y < HEIGHT; y++)
     {
-      const int c = cell[x + y * WIDTH];
-      int S = c;
-      int excited = 0;
-      int active = 0;
-      for (int yy = y - 1; yy <= y + 1; ++yy)
+      float sa = 0;
+      float sb = 0;
+      float sc = 0;
+      for (int i = x - 1; i <= x + 1; ++i)
       {
-        for (int xx = x - 1; xx <= x + 1; ++xx)
+        for (int j = y - 1; j <= y + 1; ++j)
         {
-          int v = cell[(xx + WIDTH) % WIDTH + ((yy + HEIGHT) % HEIGHT) * WIDTH];
-          S += v;
-          if (v == n)
-          {
-            ++active;
-          }
-          else if (v != 0)
-          {
-            ++excited;
-          }
+          sa += a[(i + WIDTH) % WIDTH]
+                 [(j + HEIGHT) % HEIGHT][p];
+          sb += b[(i + WIDTH) % WIDTH]
+                 [(j + HEIGHT) % HEIGHT][p];
+          sc += c[(i + WIDTH) % WIDTH]
+                 [(j + HEIGHT) % HEIGHT][p];
         }
       }
-      int c_new;
-      if (c == 0)
-      {
-        c_new = excited / k1 + active / k2;
-      }
-      else if (c == n)
-      {
-        c_new = 0;
-      }
-      else
-      {
-        c_new = S / (excited + active + 1) + g;
-      }
-      if (c_new > n)
-      {
-        c_new = n;
-      }
-      next[x + y * WIDTH] = c_new;
+      sa /= 9;
+      sb /= 9;
+      sc /= 9;
+      a[x][y][q] = constrain(sa + sa * (alpha * sb - gamma * sc));
+      b[x][y][q] = constrain(sb + sb * (beta * sc - alpha * sa));
+      c[x][y][q] = constrain(sc + sc * (gamma * sa - beta * sb));
     }
   }
-  cell = next;
+  if (p == 0)
+  {
+    p = 1;
+    q = 0;
+  }
+  else
+  {
+    p = 0;
+    q = 1;
+  }
 }

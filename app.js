@@ -16,17 +16,15 @@
 (function (window) {
   'use strict';
 
-  const DEFAULT_K1 = 3;
-  const DEFAULT_K2 = 1;
-  const DEFAULT_G = 23;
-  const DEFAULT_N = 132;
+  const DEFAULT_ALPHA = 1.2;
+  const DEFAULT_BETA = 1.0;
+  const DEFAULT_GAMMA = 1.0;
   const memory = new WebAssembly.Memory({ initial: 256, maximum: 256 });
   let exports = null;
   let canvas = null;
-  let k1 = localStorage.getItem('bzr.k1') || DEFAULT_K1;
-  let k2 = localStorage.getItem('bzr.k2') || DEFAULT_K2;
-  let g = localStorage.getItem('bzr.g') || DEFAULT_G;
-  let n = localStorage.getItem('bzr.n') || DEFAULT_N;
+  let alpha = +localStorage.getItem('bzr.alpha') || DEFAULT_ALPHA;
+  let beta = +localStorage.getItem('bzr.beta') || DEFAULT_BETA;
+  let gamma = +localStorage.getItem('bzr.gamma') || DEFAULT_GAMMA;
   let t0 = 0;
 
   const WIDTH = 512;
@@ -48,8 +46,8 @@
     t0 = t;
     ++iterations;
     iterationsEl.innerText = iterations;
-    exports._BZR_iterate(k1, k2, g, n);
-    exports._BZR_convertToRGB(n);
+    exports._BZR_iterate(alpha, beta, gamma);
+    exports._BZR_convertToRGB();
     const rgbBuffer = new Uint8ClampedArray(memory.buffer, exports._BZR_rgb_ref(), 4 * DISH_SIZE);
     const img = new ImageData(rgbBuffer, canvas.width, canvas.height);
     ctx.putImageData(img, 0, 0);
@@ -87,34 +85,21 @@
 
     iterationsEl = document.getElementById('iterations');
     fpsEl = document.getElementById('fps');
-    document.getElementById('k1').addEventListener('change', event => {
-      k1 = parseInt(event.target.value);
-      localStorage.setItem('bzr.k1', k1);
-      document.getElementById('k1-value').innerText = k1;
+    document.getElementById('alpha').addEventListener('change', event => {
+      alpha = +event.target.value;
+      localStorage.setItem('bzr.alpha', alpha);
     });
-    document.getElementById('k2').addEventListener('change', event => {
-      k2 = parseInt(event.target.value);
-      localStorage.setItem('bzr.k2', k2);
-      document.getElementById('k2-value').innerText = k2;
+    document.getElementById('beta').addEventListener('change', event => {
+      beta = +event.target.value;
+      localStorage.setItem('bzr.beta', beta);
     });
-    document.getElementById('g').addEventListener('change', event => {
-      g = parseInt(event.target.value);
-      localStorage.setItem('bzr.g', g);
-      document.getElementById('g-value').innerText = g;
+    document.getElementById('gamma').addEventListener('change', event => {
+      gamma = +event.target.value;
+      localStorage.setItem('bzr.gamma', gamma);
     });
-    document.getElementById('n').addEventListener('change', event => {
-      n = parseInt(event.target.value);
-      localStorage.setItem('bzr.n', n);
-      document.getElementById('n-value').innerText = n;
-    });
-    document.getElementById('k1').value = k1;
-    document.getElementById('k2').value = k2;
-    document.getElementById('g').value = g;
-    document.getElementById('n').value = n;
-    document.getElementById('k1-value').innerText = k1;
-    document.getElementById('k2-value').innerText = k2;
-    document.getElementById('g-value').innerText = g;
-    document.getElementById('n-value').innerText = n;
+    document.getElementById('alpha').value = alpha;
+    document.getElementById('beta').value = beta;
+    document.getElementById('gamma').value = gamma;
     document.getElementById('reset-dish-button').addEventListener('click', () => {
       pour();
     });

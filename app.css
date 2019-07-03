@@ -3,6 +3,8 @@
 * {
   margin: 0;
   padding: 0;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-size: 12pt;
 }
 
 .flex {
@@ -25,6 +27,12 @@ body {
   font-family: 'Courier New', Courier, monospace;
 }
 
+input[type="number"] {
+  border: 1px solid #111;
+  background-color: #444;
+  color: #eee;
+}
+
 canvas {
   background-color: #000;
   image-rendering: pixelated;
@@ -33,6 +41,6 @@ canvas {
 button {
   padding: 4px;
   border: 1px solid #ddd;
-  background-color: #333;
+  background-color: #444;
   color: #eee;
 }
