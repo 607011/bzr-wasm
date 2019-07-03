@@ -16,7 +16,7 @@
   align-content: flex-start;
 }
 
-.flex > * {
+.flex  * {
   padding: 4px;
 }
 
