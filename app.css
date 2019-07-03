@@ -12,8 +12,6 @@
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: flex-start;
-  align-items: stretch;
-  align-content: flex-start;
 }
 
 .flex  * {
@@ -33,12 +31,7 @@ input[type="number"] {
   color: #eee;
 }
 
-canvas {
-  background-color: #000;
-  image-rendering: pixelated;
-}
-
-.clip {
+#canvas.clip {
   clip-path: circle(256px at center);
 }
 
