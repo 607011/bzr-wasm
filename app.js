@@ -101,17 +101,13 @@
     document.getElementById('beta').value = beta;
     document.getElementById('gamma').value = gamma;
     document.getElementById('reset-dish-button').addEventListener('click', () => {
+      iterations = 0;
       pour();
     });
     initCanvas();
-    restart();
-  }
-
-  const restart = () => {
-    iterations = 0;
     pour();
     requestAnimationFrame(update);
-  };
+  }
 
   window.addEventListener('load', init);
 })(window);
