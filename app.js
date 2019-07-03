@@ -60,8 +60,8 @@
     canvas = document.getElementById('canvas');
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
-    canvas.style.width = `${WIDTH * DOTSIZE}px`;
-    canvas.style.height = `${HEIGHT * DOTSIZE}px`;
+    canvas.style.width = `${WIDTH}px`;
+    canvas.style.height = `${HEIGHT}px`;
     ctx = canvas.getContext('2d');
   };
 

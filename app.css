@@ -5,7 +5,7 @@
   padding: 0;
 }
 
-.app {
+.flex {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -14,9 +14,8 @@
   align-content: flex-start;
 }
 
-.app > div {
+.flex > * {
   padding: 4px;
-  flex-grow: 1;
 }
 
 html,
