@@ -15,32 +15,41 @@
 
 #include "rng.hpp"
 
-typedef unsigned char byte;
 typedef unsigned int uint;
 
 const int WIDTH = 512;
 const int HEIGHT = 512;
 const int DISHSIZE = WIDTH * HEIGHT;
+const float SQRT2INV = 1.f / 1.41421356237f;
+const float WEIGHT[9] = {
+    SQRT2INV, 1, SQRT2INV,
+    1, 1, 1,
+    SQRT2INV, 1, SQRT2INV};
 
-static float a[WIDTH][HEIGHT][2];
-static float b[WIDTH][HEIGHT][2];
-static float c[WIDTH][HEIGHT][2];
-static int p = 0;
-static int q = 1;
-static uint rgb[DISHSIZE];
+float a[WIDTH][HEIGHT][2];
+float b[WIDTH][HEIGHT][2];
+float c[WIDTH][HEIGHT][2];
+int t0 = 0;
+int t1 = t0 ^ 1;
+uint rgb[DISHSIZE];
 
 extern "C"
 {
   void BZR_init();
   void BZR_pour(uint seed);
-  byte *BZR_rgb_ref();
+  void *BZR_rgb_ref();
   void BZR_iterate(float alpha, float beta, float gamma);
   void BZR_convertToRGB();
 }
 
 uint rgb2int(float r, float g, float b)
 {
-  return 0xff000000U | (uint(r * 256) << 16) | (uint(g * 256) << 8) | uint(b * 256) << 0;
+  return 0xff000000U | (uint(r * 256) << 16) | (uint(g * 256) << 8) | uint(b * 256);
+}
+
+float clamp(float x)
+{
+  return (x < 0) ? 0 : (x > 1) ? 1 : x;
 }
 
 void BZR_convertToRGB()
@@ -49,7 +58,10 @@ void BZR_convertToRGB()
   {
     for (int y = 0; y < HEIGHT; ++y)
     {
-      rgb[x + y * WIDTH] = rgb2int(a[x][y][p], b[x][y][p], c[x][y][p]);
+      const float u = a[x][y][t0];
+      const float v = b[x][y][t0];
+      const float w = c[x][y][t0];
+      rgb[x + y * WIDTH] = rgb2int(u, v, w);
     }
   }
 }
@@ -66,25 +78,15 @@ void BZR_pour(uint seed)
       c[x][y][0] = rng.getFloat();
     }
   }
-  p = 0;
-  q = 1;
+  t0 = 0;
+  t1 = 1;
 }
 
-byte *BZR_rgb_ref()
+void *BZR_rgb_ref()
 {
-  return (byte *)rgb;
+  return (void *)rgb;
 }
 
-float constrain(float x)
-{
-  return (x < 0) ? 0 : (x > 1) ? 1 : x;
-}
-
-// One iteration of the Belousov-Zhabotinsky reaction:
-// k1: influence of excited cells in neighborhood
-// k2: influence of activated cells in neighborhood
-// g: speed at which waves travel
-// n: max cell value
 void BZR_iterate(float alpha, float beta, float gamma)
 {
   for (int x = 0; x < WIDTH; x++)
@@ -94,26 +96,30 @@ void BZR_iterate(float alpha, float beta, float gamma)
       float sa = 0;
       float sb = 0;
       float sc = 0;
+      int weightIdx = 0;
+      float weightScale = 0;
       for (int i = x - 1; i <= x + 1; ++i)
       {
         for (int j = y - 1; j <= y + 1; ++j)
         {
-          sa += a[(i + WIDTH) % WIDTH]
-                 [(j + HEIGHT) % HEIGHT][p];
-          sb += b[(i + WIDTH) % WIDTH]
-                 [(j + HEIGHT) % HEIGHT][p];
-          sc += c[(i + WIDTH) % WIDTH]
-                 [(j + HEIGHT) % HEIGHT][p];
+          const int ii = (i + WIDTH) % WIDTH;
+          const int jj = (j + HEIGHT) % HEIGHT;
+          const float weight = WEIGHT[weightIdx];
+          sa += weight * a[ii][jj][t0];
+          sb += weight * b[ii][jj][t0];
+          sc += weight * c[ii][jj][t0];
+          ++weightIdx;
+          weightScale += weight;
         }
       }
-      sa /= 9;
-      sb /= 9;
-      sc /= 9;
-      a[x][y][q] = constrain(sa + sa * (alpha * sb - gamma * sc));
-      b[x][y][q] = constrain(sb + sb * (beta * sc - alpha * sa));
-      c[x][y][q] = constrain(sc + sc * (gamma * sa - beta * sb));
+      sa /= weightScale;
+      sb /= weightScale;
+      sc /= weightScale;
+      a[x][y][t1] = clamp(sa + sa * (alpha * sb - gamma * sc));
+      b[x][y][t1] = clamp(sb + sb * (beta * sc - alpha * sa));
+      c[x][y][t1] = clamp(sc + sc * (gamma * sa - beta * sb));
     }
   }
-  p ^= 1;
-  q ^= 1;
+  t0 ^= 1;
+  t1 ^= 1;
 }
