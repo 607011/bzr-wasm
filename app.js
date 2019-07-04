@@ -19,12 +19,12 @@
   const DEFAULT_ALPHA = 1.2;
   const DEFAULT_BETA = 1.0;
   const DEFAULT_GAMMA = 1.0;
-  const WIDTH = 512;
-  const HEIGHT = 512;
+  const WIDTH = 512 | 0;
+  const HEIGHT = 512 | 0;
   const DISH_SIZE = WIDTH * HEIGHT;
   let t0 = 0;
   let ctx = null;
-  let iterations = 0;
+  let iterations = 0 | 0;
   let iterationsEl = null;
   let fpsEl = null;
   let memory = null;
@@ -34,12 +34,6 @@
   let beta = +localStorage.getItem('bzr.beta') || DEFAULT_BETA;
   let gamma = +localStorage.getItem('bzr.gamma') || DEFAULT_GAMMA;
 
-  async function createWebAssembly(path, importObject) {
-    const result = await window.fetch(path);
-    const bytes = await result.arrayBuffer();
-    return WebAssembly.instantiate(bytes, importObject);
-  }
-
   const update = t => {
     fpsEl.innerText = `${(1000 / (t - t0)).toFixed(1)} fps`;
     t0 = t;
@@ -47,9 +41,9 @@
     iterationsEl.innerText = iterations;
     exports._BZR_iterate(alpha, beta, gamma);
     exports._BZR_convertToRGB();
-    const rgbBuffer = new Uint8ClampedArray(memory.buffer, exports._BZR_rgb_ref(), 4 * DISH_SIZE);
+    const rgbBuffer = new Uint8ClampedArray(memory.buffer, exports._BZR_rgb_ref(), (4 | 0) * DISH_SIZE);
     const img = new ImageData(rgbBuffer, canvas.width, canvas.height);
-    ctx.putImageData(img, 0, 0);
+    ctx.putImageData(img, 0 | 0, 0 | 0);
     requestAnimationFrame(update);
   };
 
@@ -59,7 +53,7 @@
     canvas.height = HEIGHT;
     canvas.style.width = `${WIDTH}px`;
     canvas.style.height = `${HEIGHT}px`;
-    canvas.style.clipPath = `circle(${WIDTH/2}px at center)`;
+    canvas.style.clipPath = `circle(${WIDTH / 2}px at center)`;
     ctx = canvas.getContext('2d');
   };
 
@@ -71,29 +65,30 @@
   async function init() {
     memory = new WebAssembly.Memory({ initial: 256, maximum: 256 });
     const env = { 'memory': memory };
-    const importObject = { env };
-    const wa = await createWebAssembly('bzr.wasm', importObject);
+    const result = await window.fetch('bzr.wasm');
+    const bytes = await result.arrayBuffer();
+    const wa = await WebAssembly.instantiate(bytes, { env });
     exports = wa.instance.exports;
 
     iterationsEl = document.getElementById('iterations');
     fpsEl = document.getElementById('fps');
+    document.getElementById('alpha').value = alpha;
     document.getElementById('alpha').addEventListener('change', event => {
       alpha = +event.target.value;
       localStorage.setItem('bzr.alpha', alpha);
     });
+    document.getElementById('beta').value = beta;
     document.getElementById('beta').addEventListener('change', event => {
       beta = +event.target.value;
       localStorage.setItem('bzr.beta', beta);
     });
+    document.getElementById('gamma').value = gamma;
     document.getElementById('gamma').addEventListener('change', event => {
       gamma = +event.target.value;
       localStorage.setItem('bzr.gamma', gamma);
     });
-    document.getElementById('alpha').value = alpha;
-    document.getElementById('beta').value = beta;
-    document.getElementById('gamma').value = gamma;
     document.getElementById('reset-dish-button').addEventListener('click', () => {
-      iterations = 0;
+      iterations = 0 | 0;
       pour();
     });
     initCanvas();
