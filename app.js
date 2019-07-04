@@ -19,21 +19,20 @@
   const DEFAULT_ALPHA = 1.2;
   const DEFAULT_BETA = 1.0;
   const DEFAULT_GAMMA = 1.0;
+  const WIDTH = 512;
+  const HEIGHT = 512;
+  const DISH_SIZE = WIDTH * HEIGHT;
+  let t0 = 0;
+  let ctx = null;
+  let iterations = 0;
+  let iterationsEl = null;
+  let fpsEl = null;
   let memory = null;
   let exports = null;
   let canvas = null;
   let alpha = +localStorage.getItem('bzr.alpha') || DEFAULT_ALPHA;
   let beta = +localStorage.getItem('bzr.beta') || DEFAULT_BETA;
   let gamma = +localStorage.getItem('bzr.gamma') || DEFAULT_GAMMA;
-  let t0 = 0;
-
-  const WIDTH = 512;
-  const HEIGHT = 512;
-  const DISH_SIZE = WIDTH * HEIGHT;
-  let ctx = null;
-  let iterations = 0;
-  let iterationsEl = null;
-  let fpsEl = null;
 
   async function createWebAssembly(path, importObject) {
     const result = await window.fetch(path);
