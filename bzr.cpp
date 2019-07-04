@@ -25,7 +25,7 @@ const float WEIGHT[9] = {
     SQRT2INV, 1, SQRT2INV,
     1, 1, 1,
     SQRT2INV, 1, SQRT2INV};
-
+const float WEIGHTSUM = 7.8284271247523802f;
 float a[WIDTH][HEIGHT][2];
 float b[WIDTH][HEIGHT][2];
 float c[WIDTH][HEIGHT][2];
@@ -97,7 +97,6 @@ void BZR_iterate(float alpha, float beta, float gamma)
       float sb = 0;
       float sc = 0;
       int weightIdx = 0;
-      float weightScale = 0;
       for (int i = x - 1; i <= x + 1; ++i)
       {
         for (int j = y - 1; j <= y + 1; ++j)
@@ -109,12 +108,11 @@ void BZR_iterate(float alpha, float beta, float gamma)
           sb += weight * b[ii][jj][t0];
           sc += weight * c[ii][jj][t0];
           ++weightIdx;
-          weightScale += weight;
         }
       }
-      sa /= weightScale;
-      sb /= weightScale;
-      sc /= weightScale;
+      sa /= WEIGHTSUM;
+      sb /= WEIGHTSUM;
+      sc /= WEIGHTSUM;
       a[x][y][t1] = clamp(sa + sa * (alpha * sb - gamma * sc));
       b[x][y][t1] = clamp(sb + sb * (beta * sc - alpha * sa));
       c[x][y][t1] = clamp(sc + sc * (gamma * sa - beta * sb));
