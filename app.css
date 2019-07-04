@@ -31,10 +31,6 @@ input[type="number"] {
   color: #eee;
 }
 
-#canvas.clip {
-  clip-path: circle(256px at center);
-}
-
 button {
   padding: 4px;
   border: 1px solid #ddd;

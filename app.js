@@ -60,6 +60,7 @@
     canvas.height = HEIGHT;
     canvas.style.width = `${WIDTH}px`;
     canvas.style.height = `${HEIGHT}px`;
+    canvas.style.clipPath = `circle(${WIDTH/2}px at center)`;
     ctx = canvas.getContext('2d');
   };
 
