@@ -45,15 +45,14 @@ float c[WIDTH][HEIGHT][2];
 int t0 = 0;
 int t1 = t0 ^ 1;
 
-// rgb contains the RGBA data of the generated image.
-// JavaScript code can access the data contained herein
-// to draw the image on a canvas.
+// rgb contains the RGBA data of the generated image. JavaScript code
+// can access the data contained herein to draw the image on a canvas.
 uint rgb[DISHSIZE];
 
 extern "C"
 {
   // The following functions will be exported so that they can be
-  // used in JavaScript code
+  // used in JavaScript code.
   void BZR_init();
   void BZR_pour(uint seed);
   void *BZR_rgb_ref();
@@ -108,17 +107,16 @@ void BZR_pour(uint seed)
   t1 = 1;
 }
 
-// BZR_rgb_ref() returns a pointer to the RGBA data
-// of the generated image. In JavaScript code this
-// pointer can be used to populate a Uint8Array.
+// BZR_rgb_ref() returns a pointer to the RGBA data of the generated
+// image. In JavaScript code this pointer can be used to populate a
+// Uint8Array.
 void *BZR_rgb_ref()
 {
   return (void *)rgb;
 }
 
 // BZR_iterate() implements one iteration of the
-// Belousov-Zhabotisnky reaction as described by
-// Tomeu et al.
+// Belousov-Zhabotinsky reaction as described by Tomeu et al.
 void BZR_iterate(float alpha, float beta, float gamma)
 {
   for (int x = 0; x < WIDTH; x++)
