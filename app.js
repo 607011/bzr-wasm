@@ -19,7 +19,7 @@
   const DEFAULT_ALPHA = 1.2;
   const DEFAULT_BETA = 1.0;
   const DEFAULT_GAMMA = 1.0;
-  const memory = new WebAssembly.Memory({ initial: 256, maximum: 256 });
+  let memory = null;
   let exports = null;
   let canvas = null;
   let alpha = +localStorage.getItem('bzr.alpha') || DEFAULT_ALPHA;
@@ -70,15 +70,8 @@
   };
 
   async function init() {
-    const env = {
-      'abortStackOverflow': () => { throw new Error('overflow'); },
-      'table': new WebAssembly.Table({ initial: 0, maximum: 0, element: 'anyfunc' }),
-      '__table_base': 0,
-      'memory': memory,
-      '__memory_base': 1024,
-      'STACKTOP': 0,
-      'STACK_MAX': memory.buffer.byteLength,
-    };
+    memory = new WebAssembly.Memory({ initial: 256, maximum: 256 });
+    const env = { 'memory': memory };
     const importObject = { env };
     const wa = await createWebAssembly('bzr.wasm', importObject);
     exports = wa.instance.exports;
